@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  nOps Compute Management - Central Account Role.
+  Creates NopsCMCrossAccountAssume with permission to assume
+  NopsCMReadEC2Instances in all child accounts.
+  Deploy once in any AWS account in your organization (not required to be the payer account).
+
+Parameters:
+  NopsCMAssumerRoleArn:
+    Type: String
+    Default: 'arn:aws:iam::861341088565:role/NopsCMCentralClientAccountAssume'
+    Description: ARN of the nOps generic assumer role that will assume this role.
+  ExternalId:
+    Type: String
+    Description: External ID provided by nOps during onboarding. Required for secure cross-account role assumption.
+    AllowedPattern: '.+'
+    ConstraintDescription: ExternalId must not be empty.
+
+Resources:
+  NopsCMCrossAccountAssume:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: NopsCMCrossAccountAssume
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref NopsCMAssumerRoleArn
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref ExternalId
+      Policies:
+        - PolicyName: NopsCMAssumeChildRoles
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: 'arn:aws:iam::*:role/NopsCMReadEC2Instances'
+
+Outputs:
+  RoleArn:
+    Description: ARN of the NopsCMCrossAccountAssume role.
+    Value: !GetAtt NopsCMCrossAccountAssume.Arn

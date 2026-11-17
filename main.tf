@@ -1,29 +1,42 @@
-# Feature guards. Each condition is checked at plan time; a failure stops the plan
-# with the message below.
+# Feature guards. A failed precondition stops the plan with the message.
 resource "terraform_data" "feature_guard" {
   lifecycle {
     precondition {
-      condition     = var.enable_savings_analysis || var.enable_child_roles
-      error_message = "Enable at least one feature: enable_savings_analysis and/or enable_child_roles."
+      condition     = var.enable_savings_analysis || var.enable_child_roles || var.enable_commitment_management
+      error_message = "Enable at least one feature: enable_savings_analysis, enable_child_roles or enable_commitment_management."
     }
     precondition {
       condition     = !var.enable_child_roles || var.enable_savings_analysis
       error_message = "enable_child_roles requires enable_savings_analysis: child roles trust the payer role that Savings Analysis creates."
     }
     precondition {
-      condition     = !var.enable_child_roles || length(var.organizational_unit_ids) > 0
-      error_message = "enable_child_roles requires organizational_unit_ids."
+      condition     = !var.enable_commitment_management || var.enable_savings_analysis
+      error_message = "enable_commitment_management requires enable_savings_analysis: Clara enables Commitment Management only on an active AWS integration."
+    }
+    precondition {
+      condition     = !(var.enable_child_roles || var.enable_commitment_management) || length(var.organizational_unit_ids) > 0
+      error_message = "Child roles and Commitment Management deploy StackSets: set organizational_unit_ids."
     }
   }
 }
 
-# Generated only when the caller does not supply an external_id.
+# Generated only when the caller does not supply an ExternalId.
 resource "random_uuid" "external_id" {
   count = var.external_id == null ? 1 : 0
 }
 
+resource "random_uuid" "commitment_external_id" {
+  count = var.commitment_external_id == null ? 1 : 0
+}
+
+resource "random_uuid" "sharesave_external_id" {
+  count = var.sharesave_external_id == null ? 1 : 0
+}
+
 locals {
-  external_id = var.external_id != null ? var.external_id : one(random_uuid.external_id[*].result)
+  external_id            = var.external_id != null ? var.external_id : one(random_uuid.external_id[*].result)
+  commitment_external_id = var.commitment_external_id != null ? var.commitment_external_id : one(random_uuid.commitment_external_id[*].result)
+  sharesave_external_id  = var.sharesave_external_id != null ? var.sharesave_external_id : one(random_uuid.sharesave_external_id[*].result)
 }
 
 module "savings_analysis" {
@@ -57,5 +70,21 @@ module "child_roles" {
   depends_on = [terraform_data.feature_guard]
 }
 
-# Commitment Management is not part of this module yet. It will be a third
-# feature (modules/commitment-management) with the same count pattern.
+module "commitment_management" {
+  source = "./modules/commitment-management"
+  count  = var.enable_commitment_management && var.enable_savings_analysis ? 1 : 0
+
+  providers = {
+    aws           = aws
+    aws.sharesave = aws.sharesave
+  }
+
+  external_id                    = local.commitment_external_id
+  sharesave_external_id          = local.sharesave_external_id
+  cm_bridge_principal_arn        = var.cm_bridge_principal_arn
+  sharesave_bridge_principal_arn = var.sharesave_bridge_principal_arn
+  organizational_unit_ids        = var.organizational_unit_ids
+  tags                           = var.tags
+
+  depends_on = [terraform_data.feature_guard]
+}

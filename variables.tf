@@ -12,6 +12,12 @@ variable "enable_child_roles" {
   default     = false
 }
 
+variable "enable_commitment_management" {
+  type        = bool
+  description = "Deploy Commitment Management: central role, payer read role, child read roles (StackSet) and the ShareSave role in a dedicated child account. Requires enable_savings_analysis and the aws.sharesave provider."
+  default     = false
+}
+
 # ---- Clara identity ------------------------------------------------------------
 
 variable "client_id" {
@@ -82,11 +88,59 @@ variable "create_cur2" {
   default     = false
 }
 
+# ---- Commitment Management -----------------------------------------------------
+
+variable "commitment_external_id" {
+  type        = string
+  description = "ExternalId for the Commitment Management central role. Leave null to generate one."
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.commitment_external_id == null ? true : length(var.commitment_external_id) >= 8
+    error_message = "commitment_external_id must be at least 8 characters when set."
+  }
+}
+
+variable "sharesave_external_id" {
+  type        = string
+  description = "ExternalId for the ShareSave role. Leave null to generate one. May differ from commitment_external_id."
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.sharesave_external_id == null ? true : length(var.sharesave_external_id) >= 8
+    error_message = "sharesave_external_id must be at least 8 characters when set."
+  }
+}
+
+variable "cm_bridge_principal_arn" {
+  type        = string
+  description = "Clara role that assumes the Commitment Management central role. Production default."
+  default     = "arn:aws:iam::861341088565:role/NopsCMCentralClientAccountAssume"
+
+  validation {
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", var.cm_bridge_principal_arn))
+    error_message = "cm_bridge_principal_arn must be an IAM role ARN."
+  }
+}
+
+variable "sharesave_bridge_principal_arn" {
+  type        = string
+  description = "Clara role that assumes the ShareSave role. Production default."
+  default     = "arn:aws:iam::861341088565:role/CrossAccountSharesaveMgt"
+
+  validation {
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", var.sharesave_bridge_principal_arn))
+    error_message = "sharesave_bridge_principal_arn must be an IAM role ARN."
+  }
+}
+
 # ---- Child roles ---------------------------------------------------------------
 
 variable "organizational_unit_ids" {
   type        = list(string)
-  description = "Organization root id (r-xxxx) or OU ids for the child role StackSet. The payer account is never a target."
+  description = "Organization root id (r-xxxx) or OU ids for the child role StackSets (Savings Analysis and Commitment Management). The payer account is never a target."
   default     = []
 }
 

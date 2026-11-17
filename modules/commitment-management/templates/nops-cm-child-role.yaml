@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  nOps Compute Management - Child Account Role.
+  Creates NopsCMReadEC2Instances with read-only EC2, RDS, ElastiCache,
+  Redshift, OpenSearch, MemoryDB, Savings Plans, and Organizations
+  permissions.
+  Deploy via StackSets to all member accounts, or individually per child account.
+
+Parameters:
+  CentralRoleArn:
+    Type: String
+    Description: >
+      ARN of the NopsCMCrossAccountAssume role in the client's central account
+      (e.g. arn:aws:iam::123456789012:role/NopsCMCrossAccountAssume).
+
+Resources:
+  NopsCMReadEC2Instances:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: NopsCMReadEC2Instances
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref CentralRoleArn
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: NopsCMReadEC2Policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeReservedInstances
+                  - savingsplans:DescribeSavingsPlans
+                  - rds:DescribeDBInstances
+                  - rds:DescribeReservedDBInstances
+                  - elasticache:DescribeReservedCacheNodes
+                  - redshift:DescribeReservedNodes
+                  - es:DescribeReservedInstances
+                  - memorydb:DescribeReservedNodes
+                  - organizations:ListAccounts
+                Resource: '*'
+
+Outputs:
+  RoleArn:
+    Description: ARN of the NopsCMReadEC2Instances role created in this account.
+    Value: !GetAtt NopsCMReadEC2Instances.Arn

@@ -21,12 +21,20 @@ provider "aws" {
   region = "us-east-1"
 }
 
+provider "aws" {
+  alias  = "sharesave"
+  region = "us-east-1"
+  # Used only when enable_commitment_management = true. Point this at the dedicated
+  # child account for the ShareSave role, for example with assume_role.
+}
+
 module "clara" {
   source = "../.."
 
   providers = {
     aws           = aws
     aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
   }
 
   client_id          = "123456"                     # replace with your Clara client id

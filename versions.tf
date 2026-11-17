@@ -5,9 +5,9 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6.0"
-      # CUR, BCM data exports and the CUR delivery bucket are us-east-1 only. The
-      # caller passes a us-east-1 provider as aws.us_east_1.
-      configuration_aliases = [aws.us_east_1]
+      # aws.us_east_1: CUR, BCM data exports and the CUR delivery bucket are us-east-1 only.
+      # aws.sharesave: the ShareSave role lives in a dedicated child account, not the payer.
+      configuration_aliases = [aws.us_east_1, aws.sharesave]
     }
     random = {
       source  = "hashicorp/random"

@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  nOps Commitment Management — ShareSave Role.
+  Creates NopsSharesaveMgt with permissions to manage Reserved Instances,
+  Savings Plans, and Cost Explorer. Deploy in a dedicated child account
+  within your AWS Organization. Purchased commitments automatically apply
+  across the organization via RI/SP sharing.
+
+Parameters:
+  NopsCrossAccountRoleArn:
+    Type: String
+    Default: 'arn:aws:iam::861341088565:role/CrossAccountSharesaveMgt'
+    Description: ARN of the nOps cross-account role that will assume this role.
+  ExternalId:
+    Type: String
+    Description: External ID provided by nOps during onboarding. Required for secure cross-account role assumption.
+    AllowedPattern: '.+'
+    ConstraintDescription: ExternalId must not be empty.
+
+Resources:
+  NopsSharesaveMgt:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: nops-sharesave-mgt
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Ref NopsCrossAccountRoleArn
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref ExternalId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSSupportAccess
+        - arn:aws:iam::aws:policy/AWSCloudTrail_ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AWSOrganizationsReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AWSSavingsPlansFullAccess
+        - arn:aws:iam::aws:policy/ServiceQuotasFullAccess
+      Policies:
+        - PolicyName: NopsSharesaveMgtPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeReservedInstances
+                  - ec2:DescribeReservedInstancesListings
+                  - ec2:DescribeReservedInstancesModifications
+                  - ec2:DescribeReservedInstancesOfferings
+                  - ec2:ModifyReservedInstances
+                  - ec2:PurchaseReservedInstancesOffering
+                  - ec2:CreateReservedInstancesListing
+                  - ec2:CancelReservedInstancesListing
+                  - ec2:GetReservedInstancesExchangeQuote
+                  - ec2:AcceptReservedInstancesExchangeQuote
+                  - rds:PurchaseReservedDBInstancesOffering
+                  - rds:DescribeReservedDBInstancesOfferings
+                  - rds:DescribeReservedDBInstances
+                  - rds:AddTagsToResource
+                  - rds:ListTagsForResource
+                  - rds:RemoveTagsFromResource
+                  - redshift:PurchaseReservedNodeOffering
+                  - redshift:CreateTags
+                  - redshift:DeleteTags
+                  - redshift:DescribeTags
+                  - redshift:AcceptReservedNodeExchange
+                  - redshift:Describe*
+                  - redshift:GetReservedNodeExchangeOfferings
+                  - redshift:GetReservedNodeExchangeConfigurationOptions
+                  - elasticache:PurchaseReservedCacheNodesOffering
+                  - elasticache:AddTagsToResource
+                  - elasticache:RemoveTagsFromResource
+                  - elasticache:DescribeReservedCacheNodesOfferings
+                  - elasticache:DescribeReservedCacheNodes
+                  - elasticache:ListTagsForResource
+                  - memorydb:PurchaseReservedNodesOffering
+                  - memorydb:TagResource
+                  - memorydb:UntagResource
+                  - memorydb:ListTags
+                  - es:PurchaseReservedElasticsearchInstanceOffering
+                  - es:AddTags
+                  - es:RemoveTags
+                  - es:ListTags
+                  - es:DescribeReservedElasticsearchInstanceOfferings
+                  - es:DescribeReservedElasticsearchInstances
+                  - cloudfront:CreateSavingsPlan
+                  - cloudfront:GetSavingsPlan
+                  - cloudfront:ListRateCards
+                  - cloudfront:ListSavingsPlans
+                  - cloudfront:UpdateSavingsPlan
+                  - ce:*
+                  - dynamodb:DescribeReservedCapacityOfferings
+                  - dynamodb:TagResource
+                  - dynamodb:DescribeReservedCapacity
+                  - dynamodb:PurchaseReservedCapacityOfferings
+                  - savingsplans:ReturnSavingsPlan
+                Resource: '*'
+              - Effect: Allow
+                Action: iam:CreateServiceLinkedRole
+                Resource: 'arn:aws:iam::*:role/aws-service-role/*'
+                Condition:
+                  StringLike:
+                    'iam:AWSServiceName':
+                      - elasticache.amazonaws.com
+                      - redshift.amazonaws.com
+                      - opensearchservice.amazonaws.com
+                      - memorydb.amazonaws.com
+
+Outputs:
+  RoleArn:
+    Description: ARN of the NopsSharesaveMgt role.
+    Value: !GetAtt NopsSharesaveMgt.Arn
