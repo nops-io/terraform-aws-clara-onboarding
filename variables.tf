@@ -1,0 +1,99 @@
+# ---- Which features to deploy -------------------------------------------------
+
+variable "enable_savings_analysis" {
+  type        = bool
+  description = "Deploy the Savings Analysis integration: payer role, policies, CUR bucket, Legacy CUR and optional CUR 2.0."
+  default     = true
+}
+
+variable "enable_child_roles" {
+  type        = bool
+  description = "Deploy the child read role to member accounts through a service-managed StackSet. Requires enable_savings_analysis."
+  default     = false
+}
+
+# ---- Clara identity ------------------------------------------------------------
+
+variable "client_id" {
+  type        = string
+  description = "Clara client id. Used in the integration role name, nops-integration-role-<client_id>."
+
+  validation {
+    condition     = can(regex("^[0-9]+$", var.client_id))
+    error_message = "client_id must be digits only."
+  }
+}
+
+variable "data_connector_principal_arn" {
+  type        = string
+  description = "Clara data connector role that assumes the integration role. The default is the production value."
+  default     = "arn:aws:iam::861341088565:role/nops-data-connector"
+
+  validation {
+    condition     = can(regex("^arn:aws:iam::[0-9]{12}:role/.+$", var.data_connector_principal_arn))
+    error_message = "data_connector_principal_arn must be an IAM role ARN."
+  }
+}
+
+variable "external_id" {
+  type        = string
+  description = "ExternalId for the trust policy. Leave null to generate one (random_uuid). Keep it stable: changing it breaks the trust until Clara is updated."
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.external_id == null ? true : length(var.external_id) >= 8
+    error_message = "external_id must be at least 8 characters when set."
+  }
+}
+
+# ---- Savings Analysis ----------------------------------------------------------
+
+variable "permission_mode" {
+  type        = string
+  description = "minimal = Savings Analysis (Minimum Platform). full = Full Platform (Inform & Operate)."
+  default     = "minimal"
+
+  validation {
+    condition     = contains(["minimal", "full"], var.permission_mode)
+    error_message = "permission_mode must be \"minimal\" or \"full\"."
+  }
+}
+
+variable "cur_bucket_name" {
+  type        = string
+  description = "S3 bucket for CUR delivery. Created by this module in us-east-1. Must be globally unique."
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.cur_bucket_name))
+    error_message = "cur_bucket_name must be a valid S3 bucket name."
+  }
+}
+
+variable "create_legacy_cur" {
+  type        = bool
+  description = "Create the Legacy CUR report that Clara's Savings Analysis ingests."
+  default     = true
+}
+
+variable "create_cur2" {
+  type        = bool
+  description = "Create the CUR 2.0 (BCM data export) in the same bucket."
+  default     = false
+}
+
+# ---- Child roles ---------------------------------------------------------------
+
+variable "organizational_unit_ids" {
+  type        = list(string)
+  description = "Organization root id (r-xxxx) or OU ids for the child role StackSet. The payer account is never a target."
+  default     = []
+}
+
+# ---- Tags ----------------------------------------------------------------------
+
+variable "tags" {
+  type        = map(string)
+  description = "Tags applied to resources that support them."
+  default     = {}
+}

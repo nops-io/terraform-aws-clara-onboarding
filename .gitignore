@@ -1,0 +1,14 @@
+.terraform/
+.terraform.lock.hcl.bak
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+
+# Local tool logs (e.g. databricks_mcp.log)
+*.log
+
+# Internal design, dev environment and tooling. Never published; keep out of history.
+internal/

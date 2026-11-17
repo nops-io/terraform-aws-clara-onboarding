@@ -1,0 +1,56 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "apigateway:GET",
+        "bcm-data-exports:CreateExport",
+        "bcm-data-exports:GetExecution",
+        "bcm-data-exports:GetExport",
+        "bcm-data-exports:ListExecutions",
+        "bcm-data-exports:ListExports",
+        "bcm-data-exports:ListTables",
+        "bcm-data-exports:UpdateExport",
+        "bedrock-agentcore:List*",
+        "bedrock-agentcore:Get*",
+        "ce:CreateAnomalyMonitor",
+        "ce:Describe*",
+        "ce:Get*",
+        "ce:List*",
+        "ce:StartSavingsPlansPurchaseRecommendationGeneration",
+        "ce:UpdateCostAllocationTagsStatus",
+        "cloudwatch:GetMetricData",
+        "cost-optimization-hub:*",
+        "cur:DeleteReportDefinition",
+        "cur:DescribeReportDefinitions",
+        "cur:PutReportDefinition",
+        "ec2:CreateSnapshot",
+        "ec2:CreateTags",
+        "ec2:DeleteVolume",
+        "events:CreateEventBus",
+        "lambda:GetFunctionConfiguration",
+        "organizations:InviteAccountToOrganization",
+        "pricing:*",
+        "rds:AddTagsToResource",
+        "savingsplans:List*",
+        "servicequotas:Get*",
+        "servicequotas:List*",
+        "servicequotas:RequestServiceQuotaIncrease",
+        "support:AddCommunicationToCase",
+        "support:CreateCase",
+        "support:Describe*",
+        "support:ResolveCase",
+        "wellarchitected:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Resource": "arn:aws:iam::*:role/nops-sa-child-role"
+    }
+  ]
+}

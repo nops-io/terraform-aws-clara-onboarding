@@ -1,0 +1,50 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bcm-data-exports:ListExports",
+        "bcm-data-exports:ListTables",
+        "bcm-data-exports:GetExport",
+        "bcm-data-exports:GetExecution",
+        "bcm-data-exports:CreateExport",
+        "bcm-data-exports:UpdateExport",
+        "bcm-data-exports:ListExecutions",
+        "ce:GetReservationCoverage",
+        "ce:GetReservationPurchaseRecommendation",
+        "ce:GetReservationUtilization",
+        "ce:GetSavingsPlanPurchaseRecommendationDetails",
+        "ce:GetSavingsPlansCoverage",
+        "ce:GetSavingsPlansPurchaseRecommendation",
+        "ce:GetSavingsPlansUtilization",
+        "ce:GetSavingsPlansUtilizationDetails",
+        "ce:ListSavingsPlansPurchaseRecommendationGeneration",
+        "cur:GetClassicReport",
+        "cur:GetClassicReportPreferences",
+        "cur:GetUsageReport",
+        "cur:DescribeReportDefinitions",
+        "cur:PutReportDefinition",
+        "ec2:DescribeReservedInstances",
+        "organizations:ListAccounts",
+        "organizations:DescribeOrganization",
+        "organizations:ListRoots",
+        "savingsplans:DescribeSavingsPlanRates",
+        "savingsplans:DescribeSavingsPlans",
+        "savingsplans:DescribeSavingsPlansOfferingRates",
+        "savingsplans:DescribeSavingsPlansOfferings",
+        "savingsplans:ListTagsForResource",
+        "support:CreateCase",
+        "support:DescribeCases"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Resource": "arn:aws:iam::*:role/nops-sa-child-role-minimal"
+    }
+  ]
+}

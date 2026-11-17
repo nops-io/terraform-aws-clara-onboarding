@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyObjectDataOutsideNopsBuckets",
+      "Effect": "Deny",
+      "Action": [
+        "s3:GetObject*",
+        "s3-object-lambda:GetObject*",
+        "s3-outposts:GetObject*",
+        "s3express:CreateSession",
+        "s3tables:GetTableData",
+        "glacier:GetJobOutput"
+      ],
+      "NotResource": [
+        "arn:aws:s3:::<example-bucket-name>/*",
+        "arn:aws:s3:::*/nops-cur2/*"
+      ]
+    }
+  ]
+}
