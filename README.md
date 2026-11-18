@@ -56,6 +56,18 @@ module "clara_registration" {
 
 The registration module is **create-only**, because its key is. Clara checks access when the integration is created and the module reports `verification_state`. A failed check is a warning, not an error: the integration already exists, and a tainted resource could not be recreated. Plan makes no request to Clara, a changed registration is refused at plan time, and `terraform destroy` leaves the integration in Clara. Change or disconnect it there. If the account already has an integration, registration fails with a message saying so. The full example is in `examples/headless-registration`.
 
+## Duplicates and re-runs
+
+The module creates resources with fixed names in the payer account: the role `nops-integration-role-<client_id>`, the IAM policies `nOpsBucketPolicy`, `nOpsMinimumPlatformPermissions` and so on, the CUR report `nops_cur_<client_id>_hourly`, and the Commitment Management stacks and roles. Only one deployment can own those names in an account.
+
+- **Re-running the same configuration** is safe. The state already holds the resources, so `terraform apply` changes nothing.
+- **Deploying again in an account that already has them** (from this module, from Clara's CloudFormation stack, or from a second Terraform state) fails in AWS with `EntityAlreadyExists`. The module does not adopt or overwrite. Nothing is registered with Clara in that case.
+- **Losing the state** means the next apply fails the same way. Import the existing resources into the new state (`terraform import`), or delete them, before applying.
+- **A failed apply** can leave some resources created. They are in the state, so `terraform destroy` removes them.
+- **Clara refuses a second integration** for the same payer account, even if the AWS resources are fine. The headless provider cannot adopt one. Remove the old integration in Clara first.
+
+Use one of the onboarding paths per payer account: the CloudFormation wizard, this module, or the headless registration. Not two of them.
+
 ## Requirements
 
 - Terraform `>= 1.6.0`
