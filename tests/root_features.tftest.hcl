@@ -8,6 +8,12 @@ mock_provider "aws" {
 
 mock_provider "aws" {
   alias = "us_east_1"
+
+  mock_data "aws_s3_bucket" {
+    defaults = {
+      region = "us-east-1"
+    }
+  }
 }
 
 mock_provider "aws" {
@@ -293,3 +299,45 @@ run "rejects_prefix_with_invalid_characters" {
 
   expect_failures = [var.cur_s3_prefix]
 }
+
+run "existing_cur_bucket_is_passed_through" {
+  command = plan
+
+  variables {
+    create_cur_bucket = false
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition     = output.cur_bucket_name == "nops-test-cur-bucket"
+    error_message = "An existing CUR bucket must be used as the delivery bucket."
+  }
+}
+
+run "sharesave_console_role_is_passed_through" {
+  command = plan
+
+  variables {
+    enable_commitment_management = true
+    organizational_unit_ids      = ["r-abcd"]
+    sharesave_template           = "single"
+    console_access_account_id    = "123456789012"
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition     = module.commitment_management[0].sharesave_console_role_arn == null
+    error_message = "Single ShareSave mode must not expose a console role."
+  }
+}
+

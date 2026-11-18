@@ -86,3 +86,66 @@ run "child_targets_required" {
 
   expect_failures = [var.organizational_unit_ids]
 }
+
+run "sharesave_defaults_to_the_dual_role_with_console_access" {
+  command = plan
+
+  variables {
+    sharesave_external_id = "66666666-7777-8888-9999-000000000000"
+  }
+
+  providers = {
+    aws           = aws
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition     = aws_cloudformation_stack.sharesave.parameters["ConsoleAccessAccountId"] == "857624037201"
+    error_message = "The dual ShareSave role must trust Clara's console account for Switch Role."
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudformation_stack.sharesave.template_body, "NopsSharesaveMgtConsole")
+    error_message = "Dual mode must deploy the console role template."
+  }
+}
+
+run "sharesave_single_deploys_the_api_role_only" {
+  command = plan
+
+  variables {
+    sharesave_external_id = "66666666-7777-8888-9999-000000000000"
+    sharesave_template    = "single"
+  }
+
+  providers = {
+    aws           = aws
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition     = !contains(keys(aws_cloudformation_stack.sharesave.parameters), "ConsoleAccessAccountId")
+    error_message = "Single mode must not pass the console account parameter."
+  }
+
+  assert {
+    condition     = !strcontains(aws_cloudformation_stack.sharesave.template_body, "NopsSharesaveMgtConsole")
+    error_message = "Single mode must not deploy the console role."
+  }
+}
+
+run "sharesave_template_must_be_known" {
+  command = plan
+
+  variables {
+    sharesave_template = "triple"
+  }
+
+  providers = {
+    aws           = aws
+    aws.sharesave = aws.sharesave
+  }
+
+  expect_failures = [var.sharesave_template]
+}
+

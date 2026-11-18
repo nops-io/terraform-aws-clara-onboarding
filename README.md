@@ -151,7 +151,10 @@ Full examples are in `examples/`.
 | `data_connector_principal_arn` | Clara data connector role. | Clara production role |
 | `external_id` | ExternalId for the trust. Sensitive. Generated when null. | `null` |
 | `permission_mode` | `minimal` (Savings Analysis) or `full` (Inform & Operate). | `minimal` |
-| `cur_bucket_name` | CUR delivery bucket. Created by the module. Required. | — |
+| `cur_bucket_name` | CUR delivery bucket. Required. Created by the module unless `create_cur_bucket = false`. | — |
+| `create_cur_bucket` | `true` creates the bucket and its delivery policy. `false` uses a bucket you already own in us-east-1: the module writes nothing to it, so its bucket policy must already allow `billingreports.amazonaws.com` and `bcm-data-exports.amazonaws.com`. | `true` |
+| `sharesave_template` | Commitment Management ShareSave role. `dual` deploys the API role and the console role (Switch Role), as Clara's Commitment Management wizard does. `single` deploys the API role only. | `dual` |
+| `console_access_account_id` | Account whose root may use the ShareSave console role. Used with `sharesave_template = dual`. | Clara's production account |
 | `create_legacy_cur` | Create the Legacy CUR. | `true` |
 | `create_cur2` | Create the CUR 2.0 export. | `false` |
 | `cur_report_name` | Legacy CUR report name. Empty means `nops_cur_<client_id>_hourly`. | `""` |
@@ -177,7 +180,9 @@ Full examples are in `examples/`.
 
 - The module creates the CUR bucket. Existing buckets are not supported, because the bucket policy is a single document and would replace the one you have.
 - The ShareSave role must be in a dedicated child account. The module refuses to deploy it into the payer.
-- Commitment Management creates CloudFormation stacks, with the same template Clara's wizard uses. A stack name collision with an existing Clara stack fails the plan.
+- Commitment Management creates CloudFormation stacks with the same templates Clara's wizard uses. A stack name collision with an existing Clara stack fails the plan.
+- An existing CUR bucket is never changed. A bucket policy is a single document, so writing one would replace the policy the customer already has. The module reads the bucket and fails the plan unless it is in us-east-1.
+- Commitment Management deploys ShareSave into one dedicated account. Clara's wizard can also deploy it to several purchase accounts through a StackSet. The module does not do that yet.
 - IAM names are account-wide. An account that already has the Clara CloudFormation stacks needs those resources imported before this module can run.
 - The ExternalId is a shared secret for the trust. Changing it breaks the trust until Clara is updated.
 - Registering the account with Clara is a separate step: the wizard (no key) or `modules/registration` (API key). See above.

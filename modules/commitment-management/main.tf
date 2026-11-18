@@ -1,3 +1,7 @@
+locals {
+  sharesave_template_file = var.sharesave_template == "dual" ? "nops-cm-sharesave-dual.yaml" : "nops-cm-sharesave-role.yaml"
+}
+
 data "aws_caller_identity" "payer" {}
 
 data "aws_caller_identity" "sharesave" {
@@ -75,17 +79,21 @@ resource "aws_cloudformation_stack_set_instance" "child" {
 }
 
 # ShareSave role (nops-sharesave-mgt): purchasing and Cost Explorer. Deployed in a
-# dedicated child account through the aws.sharesave provider.
+# dedicated child account through the aws.sharesave provider. "dual" also creates the
+# console role that Clara's Switch Role uses, as the Commitment Management wizard does.
 resource "aws_cloudformation_stack" "sharesave" {
   provider      = aws.sharesave
   name          = "nops-cm-sharesave"
-  template_body = file("${path.module}/templates/nops-cm-sharesave-role.yaml")
+  template_body = file("${path.module}/templates/${local.sharesave_template_file}")
   capabilities  = ["CAPABILITY_NAMED_IAM"]
 
-  parameters = {
-    NopsCrossAccountRoleArn = var.sharesave_bridge_principal_arn
-    ExternalId              = var.sharesave_external_id
-  }
+  parameters = merge(
+    {
+      NopsCrossAccountRoleArn = var.sharesave_bridge_principal_arn
+      ExternalId              = var.sharesave_external_id
+    },
+    var.sharesave_template == "dual" ? { ConsoleAccessAccountId = var.console_access_account_id } : {}
+  )
 
   tags       = var.tags
   depends_on = [terraform_data.account_guard]

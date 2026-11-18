@@ -53,6 +53,7 @@ module "savings_analysis" {
   external_id                  = local.external_id
   permission_mode              = var.permission_mode
   cur_bucket_name              = var.cur_bucket_name
+  create_cur_bucket            = var.create_cur_bucket
   create_legacy_cur            = var.create_legacy_cur
   cur_report_name              = var.cur_report_name
   cur_s3_prefix                = var.cur_s3_prefix
@@ -87,6 +88,8 @@ module "commitment_management" {
   sharesave_external_id          = local.sharesave_external_id
   cm_bridge_principal_arn        = var.cm_bridge_principal_arn
   sharesave_bridge_principal_arn = var.sharesave_bridge_principal_arn
+  sharesave_template             = var.sharesave_template
+  console_access_account_id      = var.console_access_account_id
   organizational_unit_ids        = var.organizational_unit_ids
   tags                           = var.tags
 

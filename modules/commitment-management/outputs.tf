@@ -15,5 +15,10 @@ output "child_stack_set_name" {
 
 output "sharesave_role_arn" {
   description = "nops-sharesave-mgt ARN. Register with Clara."
-  value       = aws_cloudformation_stack.sharesave.outputs["RoleArn"]
+  value       = aws_cloudformation_stack.sharesave.outputs[var.sharesave_template == "dual" ? "ApiRoleArn" : "RoleArn"]
+}
+
+output "sharesave_console_role_arn" {
+  description = "nops-sharesave-mgt-console ARN, for Switch Role. Null with sharesave_template = single."
+  value       = var.sharesave_template == "dual" ? aws_cloudformation_stack.sharesave.outputs["ConsoleRoleArn"] : null
 }

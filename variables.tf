@@ -76,6 +76,12 @@ variable "cur_bucket_name" {
   }
 }
 
+variable "create_cur_bucket" {
+  type        = bool
+  description = "true (default): create cur_bucket_name and its delivery policy. false: use a bucket you already own in us-east-1. This module then writes nothing to it, so the bucket must already grant billingreports.amazonaws.com and bcm-data-exports.amazonaws.com."
+  default     = true
+}
+
 variable "create_legacy_cur" {
   type        = bool
   description = "Create the Legacy CUR report that Clara's Savings Analysis ingests."
@@ -181,6 +187,28 @@ variable "sharesave_bridge_principal_arn" {
 }
 
 # ---- Child roles ---------------------------------------------------------------
+
+variable "sharesave_template" {
+  type        = string
+  description = "Commitment Management ShareSave role: dual (API and console roles, as Clara's wizard deploys) or single (API role only)."
+  default     = "dual"
+
+  validation {
+    condition     = contains(["dual", "single"], var.sharesave_template)
+    error_message = "sharesave_template must be \"dual\" or \"single\"."
+  }
+}
+
+variable "console_access_account_id" {
+  type        = string
+  description = "Account whose root may use the ShareSave console role (Switch Role). Clara's production value is the default."
+  default     = "857624037201"
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.console_access_account_id))
+    error_message = "console_access_account_id must be a 12-digit AWS account id."
+  }
+}
 
 variable "organizational_unit_ids" {
   type        = list(string)

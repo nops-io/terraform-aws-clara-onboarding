@@ -42,6 +42,28 @@ variable "sharesave_bridge_principal_arn" {
   }
 }
 
+variable "sharesave_template" {
+  type        = string
+  description = "dual (default): the API role nops-sharesave-mgt and the console role nops-sharesave-mgt-console, as Clara's Commitment Management wizard deploys them. single: the API role only."
+  default     = "dual"
+
+  validation {
+    condition     = contains(["dual", "single"], var.sharesave_template)
+    error_message = "sharesave_template must be \"dual\" or \"single\"."
+  }
+}
+
+variable "console_access_account_id" {
+  type        = string
+  description = "Account whose root principal may use the ShareSave console role (Switch Role). Used with sharesave_template = dual."
+  default     = "857624037201"
+
+  validation {
+    condition     = can(regex("^[0-9]{12}$", var.console_access_account_id))
+    error_message = "console_access_account_id must be a 12-digit AWS account id."
+  }
+}
+
 variable "organizational_unit_ids" {
   type        = list(string)
   description = "Organization root id or OU ids for the child read role StackSet. The payer account is never a target."

@@ -41,12 +41,18 @@ variable "permission_mode" {
 
 variable "cur_bucket_name" {
   type        = string
-  description = "S3 bucket for Legacy CUR and CUR 2.0 delivery. Created by this module in us-east-1. Must be globally unique."
+  description = "S3 bucket for Legacy CUR and CUR 2.0 delivery. Created by this module in us-east-1 unless create_cur_bucket = false. A created bucket must be globally unique."
 
   validation {
     condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.cur_bucket_name))
     error_message = "cur_bucket_name must be a valid S3 bucket name."
   }
+}
+
+variable "create_cur_bucket" {
+  type        = bool
+  description = "true: create cur_bucket_name and its delivery policy. false: use a bucket the customer already owns in us-east-1, and write nothing to it."
+  default     = true
 }
 
 variable "create_legacy_cur" {

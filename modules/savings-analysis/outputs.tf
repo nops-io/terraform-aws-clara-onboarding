@@ -25,7 +25,7 @@ output "permission_mode" {
 
 output "cur_bucket_name" {
   description = "CUR delivery bucket."
-  value       = aws_s3_bucket.cur.id
+  value       = var.cur_bucket_name
 }
 
 output "cur_report_name" {

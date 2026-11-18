@@ -2,6 +2,12 @@ mock_provider "aws" {}
 
 mock_provider "aws" {
   alias = "us_east_1"
+
+  mock_data "aws_s3_bucket" {
+    defaults = {
+      region = "us-east-1"
+    }
+  }
 }
 
 mock_provider "time" {}
@@ -151,3 +157,84 @@ run "rejects_short_external_id" {
 
   expect_failures = [var.external_id]
 }
+
+run "existing_bucket_is_never_created_or_written" {
+  command = plan
+
+  variables {
+    permission_mode   = "minimal"
+    create_cur_bucket = false
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  assert {
+    condition = (
+      length(aws_s3_bucket.cur) == 0 &&
+      length(aws_s3_bucket_policy.cur_delivery) == 0 &&
+      length(aws_s3_bucket_public_access_block.cur) == 0 &&
+      length(aws_s3_bucket_server_side_encryption_configuration.cur) == 0
+    )
+    error_message = "An existing CUR bucket must not be created or have its configuration or policy changed."
+  }
+
+  assert {
+    condition     = aws_cur_report_definition.legacy[0].s3_bucket == "nops-test-cur-bucket"
+    error_message = "The Legacy CUR must deliver into the existing bucket."
+  }
+
+  assert {
+    condition     = output.cur_bucket_name == "nops-test-cur-bucket"
+    error_message = "The bucket output must name the existing bucket."
+  }
+}
+
+run "existing_bucket_must_be_in_us_east_1" {
+  command = plan
+
+  variables {
+    permission_mode   = "minimal"
+    create_cur_bucket = false
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  override_data {
+    target = data.aws_s3_bucket.existing[0]
+    values = {
+      region = "eu-west-1"
+    }
+  }
+
+  expect_failures = [terraform_data.existing_cur_bucket_guard[0]]
+}
+
+run "created_bucket_still_gets_the_delivery_policy" {
+  command = plan
+
+  variables {
+    permission_mode = "minimal"
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  assert {
+    condition     = length(aws_s3_bucket.cur) == 1 && length(aws_s3_bucket_policy.cur_delivery) == 1
+    error_message = "By default the module creates the bucket and its delivery policy."
+  }
+
+  assert {
+    condition     = length(data.aws_s3_bucket.existing) == 0
+    error_message = "No existing-bucket lookup when the module creates the bucket."
+  }
+}
+
