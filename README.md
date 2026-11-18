@@ -75,6 +75,7 @@ Use one of the onboarding paths per payer account: the CloudFormation wizard, th
 - Run in the payer (management) account. Child roles and Commitment Management also need CloudFormation StackSets trusted access for the organization.
 - A second provider, `aws.sharesave`, configured for a dedicated child account. It is used only when `enable_commitment_management = true`, and the module refuses to deploy the ShareSave role into the payer account.
 - A `us-east-1` provider, passed as `aws.us_east_1`. CUR and BCM data exports are only available in `us-east-1`.
+- Cost Explorer enabled in the payer account, and the root user must allow IAM access to billing information. Without both, Clara's `ce:` checks fail with "User not enabled for cost explorer access". The module cannot set either.
 
 ## Usage
 
