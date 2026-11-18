@@ -88,6 +88,50 @@ variable "create_cur2" {
   default     = false
 }
 
+variable "cur_report_name" {
+  type        = string
+  description = "Legacy CUR report name. Empty means nops_cur_<client_id>_hourly, the name Clara's wizard suggests."
+  default     = ""
+
+  validation {
+    condition     = can(regex("^$|^[A-Za-z0-9_-]{1,128}$", var.cur_report_name))
+    error_message = "cur_report_name may contain letters, digits, underscores and hyphens (up to 128 characters)."
+  }
+}
+
+variable "cur_s3_prefix" {
+  type        = string
+  description = "S3 prefix for the Legacy CUR. Must match what you enter in the Clara wizard."
+  default     = "nops-cur"
+
+  validation {
+    condition     = can(regex("^[0-9A-Za-z._/-]+$", var.cur_s3_prefix))
+    error_message = "cur_s3_prefix may contain letters, digits, dots, underscores, slashes and hyphens."
+  }
+}
+
+variable "cur2_export_name" {
+  type        = string
+  description = "CUR 2.0 export name. Empty means nops_cur2_<client_id>_hourly."
+  default     = ""
+
+  validation {
+    condition     = can(regex("^$|^[A-Za-z0-9_-]{1,128}$", var.cur2_export_name))
+    error_message = "cur2_export_name may contain letters, digits, underscores and hyphens (up to 128 characters)."
+  }
+}
+
+variable "cur2_s3_prefix" {
+  type        = string
+  description = "S3 prefix for CUR 2.0. Keep nops-cur2 unless Clara is told otherwise: Full Platform's S3 data deny exempts that folder."
+  default     = "nops-cur2"
+
+  validation {
+    condition     = can(regex("^[0-9A-Za-z._/-]+$", var.cur2_s3_prefix))
+    error_message = "cur2_s3_prefix may contain letters, digits, dots, underscores, slashes and hyphens."
+  }
+}
+
 # ---- Commitment Management -----------------------------------------------------
 
 variable "commitment_external_id" {

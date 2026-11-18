@@ -58,7 +58,10 @@ output "registration" {
     permission_mode        = var.permission_mode
     cur_bucket_name        = one(module.savings_analysis[*].cur_bucket_name)
     cur_report_name        = one(module.savings_analysis[*].cur_report_name)
+    cur_s3_prefix          = one(module.savings_analysis[*].cur_s3_prefix)
     cur2_export_arn        = one(module.savings_analysis[*].cur2_export_arn)
+    cur2_export_name       = one(module.savings_analysis[*].cur2_export_name)
+    cur2_s3_prefix         = one(module.savings_analysis[*].cur2_s3_prefix)
     child_role_name        = one(module.child_roles[*].child_role_name)
     commitment_enabled     = var.enable_commitment_management
     commitment_central_arn = one(module.commitment_management[*].central_role_arn)

@@ -14,6 +14,47 @@ Use one module for every AWS onboarding feature. Enable the features you want wi
 
 Full Platform is not a separate feature. It is `permission_mode = "full"` on Savings Analysis.
 
+## Two ways to connect the account to Clara
+
+The module creates the AWS side. Then the account has to be registered with Clara. Choose one:
+
+| | UI-assisted | Headless |
+|---|---|---|
+| Who registers the account | You, in Clara's setup wizard | Terraform, through the Clara API |
+| Credential | None. You use your normal Clara login | A Clara API key with the `aws-onboarding` permissions |
+| What you add | Nothing. Run this module, then paste the `role_arn` output into the wizard | `modules/registration` and the `nops-io/clara` provider |
+| Best for | A first account, or when no API key is available | Pipelines and many accounts |
+
+Both end in the same place: an integration in Clara that Clara verifies by assuming the role.
+
+**UI-assisted.** Start the integration in Clara and choose Terraform. The wizard shows a configuration with your client id and ExternalId filled in. Apply it, run `terraform output -raw role_arn`, paste the value into the wizard, and verify.
+
+**Headless.** Keep the key out of your files and set it in the environment:
+
+```bash
+export CLARA_API_KEY=...
+```
+
+```hcl
+provider "clara" {}
+
+data "clara_context" "this" {}
+
+module "clara" {
+  source    = "nops-io/clara-onboarding/aws"
+  client_id = data.clara_context.this.client_id
+  # ...
+}
+
+module "clara_registration" {
+  source           = "nops-io/clara-onboarding/aws//modules/registration"
+  payer_account_id = "<payer-account-id>"
+  registration     = module.clara.registration
+}
+```
+
+The registration module waits for Clara's verification and fails unless the integration becomes active. `terraform destroy` disconnects the integration in Clara. It does not delete anything in AWS. The full example is in `examples/headless-registration`.
+
 ## Requirements
 
 - Terraform `>= 1.6.0`
@@ -112,6 +153,10 @@ Full examples are in `examples/`.
 | `cur_bucket_name` | CUR delivery bucket. Created by the module. Required. | — |
 | `create_legacy_cur` | Create the Legacy CUR. | `true` |
 | `create_cur2` | Create the CUR 2.0 export. | `false` |
+| `cur_report_name` | Legacy CUR report name. Empty means `nops_cur_<client_id>_hourly`. | `""` |
+| `cur_s3_prefix` | Legacy CUR S3 prefix. Match what you enter in Clara. | `nops-cur` |
+| `cur2_export_name` | CUR 2.0 export name. Empty means `nops_cur2_<client_id>_hourly`. | `""` |
+| `cur2_s3_prefix` | CUR 2.0 S3 prefix. | `nops-cur2` |
 | `organizational_unit_ids` | Root or OU ids for the child role StackSets (Savings Analysis and Commitment Management). | `[]` |
 | `tags` | Tags for supported resources. | `{}` |
 
@@ -134,7 +179,8 @@ Full examples are in `examples/`.
 - Commitment Management creates CloudFormation stacks, with the same template Clara's wizard uses. A stack name collision with an existing Clara stack fails the plan.
 - IAM names are account-wide. An account that already has the Clara CloudFormation stacks needs those resources imported before this module can run.
 - The ExternalId is a shared secret for the trust. Changing it breaks the trust until Clara is updated.
-- Registering the account with Clara is a separate step, done with the Clara provider.
+- Registering the account with Clara is a separate step: the wizard (no key) or `modules/registration` (API key). See above.
+- The CUR 2.0 export is always delivered to the same bucket as the Legacy CUR. A separate CUR 2.0 bucket is not supported.
 
 ## Examples
 
@@ -142,5 +188,6 @@ Full examples are in `examples/`.
 - `examples/savings-analysis-full`
 - `examples/with-child-roles`
 - `examples/commitment-management`
+- `examples/headless-registration` (needs the `nops-io/clara` provider)
 
 Each example validates as is. Replace the placeholder values before you apply.

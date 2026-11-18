@@ -43,6 +43,11 @@ output "cur2_export_arn" {
   value       = var.create_cur2 ? aws_bcmdataexports_export.cur2[0].arn : null
 }
 
+output "cur2_export_name" {
+  description = "CUR 2.0 export name, or null when not created."
+  value       = var.create_cur2 ? local.cur2_export_name : null
+}
+
 output "cur2_s3_prefix" {
   description = "CUR 2.0 S3 prefix, or null when not created."
   value       = var.create_cur2 ? var.cur2_s3_prefix : null

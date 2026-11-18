@@ -225,3 +225,71 @@ run "external_ids_supplied_are_used" {
     error_message = "No ExternalIds are generated when the caller supplies them."
   }
 }
+
+run "wizard_cur_settings_are_passed_through" {
+  command = plan
+
+  variables {
+    create_cur2      = true
+    cur_report_name  = "wizard_report"
+    cur_s3_prefix    = "wizard-prefix"
+    cur2_export_name = "wizard_cur2"
+    cur2_s3_prefix   = "wizard-cur2"
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition = (
+      output.registration.cur_report_name == "wizard_report" &&
+      output.registration.cur_s3_prefix == "wizard-prefix" &&
+      output.registration.cur2_export_name == "wizard_cur2" &&
+      output.registration.cur2_s3_prefix == "wizard-cur2"
+    )
+    error_message = "Every CUR setting the wizard can edit must reach the module and the registration output."
+  }
+}
+
+run "defaults_match_the_wizard_suggestions" {
+  command = plan
+
+  variables {
+    create_cur2 = true
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
+  }
+
+  assert {
+    condition = (
+      output.registration.cur_report_name == "nops_cur_42_hourly" &&
+      output.registration.cur_s3_prefix == "nops-cur" &&
+      output.registration.cur2_export_name == "nops_cur2_42_hourly" &&
+      output.registration.cur2_s3_prefix == "nops-cur2"
+    )
+    error_message = "Defaults must equal the wizard's suggested names and prefixes."
+  }
+}
+
+run "rejects_prefix_with_invalid_characters" {
+  command = plan
+
+  variables {
+    cur_s3_prefix = "bad prefix!"
+  }
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws.sharesave
+  }
+
+  expect_failures = [var.cur_s3_prefix]
+}

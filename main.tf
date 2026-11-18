@@ -54,7 +54,11 @@ module "savings_analysis" {
   permission_mode              = var.permission_mode
   cur_bucket_name              = var.cur_bucket_name
   create_legacy_cur            = var.create_legacy_cur
+  cur_report_name              = var.cur_report_name
+  cur_s3_prefix                = var.cur_s3_prefix
   create_cur2                  = var.create_cur2
+  cur2_export_name             = var.cur2_export_name
+  cur2_s3_prefix               = var.cur2_s3_prefix
   tags                         = var.tags
 }
 
