@@ -33,15 +33,3 @@ variable "name" {
   description = "Name shown in Clara. Empty means \"AWS Account <payer account id>\"."
   default     = null
 }
-
-variable "wait_for_verification" {
-  type        = bool
-  description = "Run Clara's access verification and fail unless the integration becomes active."
-  default     = true
-}
-
-variable "verification_timeout_seconds" {
-  type        = number
-  description = "How long to wait for verification."
-  default     = 300
-}

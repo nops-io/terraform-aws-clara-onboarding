@@ -1,5 +1,10 @@
 # Registers the AWS resources created by the root module with Clara, through the
-# Clara API. Needs a Clara API key in CLARA_API_KEY (see the clara provider).
+# Clara API. Needs a Clara API key in CLARA_API_KEY (see the clara provider) that has
+# only the aws-onboarding:create permission.
+#
+# Create-only. That key cannot read, change or delete anything in Clara, so this module
+# registers the account once. Later changes to the registration are refused at plan time,
+# and destroying it leaves the integration in Clara. Change or disconnect it in Clara.
 #
 # This module is optional. The root module works without it: without a key, the
 # customer pastes the role ARN into Clara's setup wizard instead.
@@ -16,7 +21,4 @@ resource "clara_aws_integration" "this" {
   cur_s3_prefix    = var.registration.cur_s3_prefix
   cur2_export_name = var.registration.cur2_export_name
   cur2_s3_prefix   = var.registration.cur2_s3_prefix
-
-  wait_for_verification        = var.wait_for_verification
-  verification_timeout_seconds = var.verification_timeout_seconds
 }

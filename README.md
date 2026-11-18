@@ -21,9 +21,10 @@ The module creates the AWS side. Then the account has to be registered with Clar
 | | UI-assisted | Headless |
 |---|---|---|
 | Who registers the account | You, in Clara's setup wizard | Terraform, through the Clara API |
-| Credential | None. You use your normal Clara login | A Clara API key with the `aws-onboarding` permissions |
+| Credential | None. You use your normal Clara login | A Clara API key with only the `aws-onboarding:create` permission |
 | What you add | Nothing. Run this module, then paste the `role_arn` output into the wizard | `modules/registration` and the `nops-io/clara` provider |
 | Best for | A first account, or when no API key is available | Pipelines and many accounts |
+| After it is registered | You manage the integration in Clara | Still in Clara. The key can only create, so changes and disconnects happen there |
 
 Both end in the same place: an integration in Clara that Clara verifies by assuming the role.
 
@@ -35,14 +36,14 @@ Both end in the same place: an integration in Clara that Clara verifies by assum
 export CLARA_API_KEY=...
 ```
 
+Create the key in Clara under **Settings → Security → API Keys** and select only `aws-onboarding:create`. That permission registers a new account and nothing else.
+
 ```hcl
 provider "clara" {}
 
-data "clara_context" "this" {}
-
 module "clara" {
   source    = "nops-io/clara-onboarding/aws"
-  client_id = data.clara_context.this.client_id
+  client_id = "<your Clara client id>" # shown in the configuration the setup wizard generates
   # ...
 }
 
@@ -53,7 +54,7 @@ module "clara_registration" {
 }
 ```
 
-The registration module waits for Clara's verification and fails unless the integration becomes active. `terraform destroy` disconnects the integration in Clara. It does not delete anything in AWS. The full example is in `examples/headless-registration`.
+The registration module is **create-only**, because its key is. Clara checks access when the integration is created and the module reports `verification_state`. A failed check is a warning, not an error: the integration already exists, and a tainted resource could not be recreated. Plan makes no request to Clara, a changed registration is refused at plan time, and `terraform destroy` leaves the integration in Clara. Change or disconnect it there. If the account already has an integration, registration fails with a message saying so. The full example is in `examples/headless-registration`.
 
 ## Requirements
 
