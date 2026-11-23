@@ -21,7 +21,7 @@ resource "aws_iam_role" "integration" {
   tags = var.tags
 }
 
-# nOpsBucketPolicy: read and write for the CUR bucket. Same statements as the
+# nOpsBucketPolicy: read-only access to the CUR bucket. Same statements as the
 # CloudFormation template (NopsBucketPolicy), for both permission modes.
 resource "aws_iam_policy" "bucket" {
   name        = "nOpsBucketPolicy"
@@ -41,8 +41,6 @@ resource "aws_iam_policy" "bucket" {
           "s3:GetBucketAcl",
           "s3:GetBucketLogging",
           "s3:GetObject",
-          "s3:PutBucketPolicy",
-          "s3:PutObject",
         ]
         Resource = [local.bucket_arn, "${local.bucket_arn}/*"]
       }
