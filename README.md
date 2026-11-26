@@ -42,13 +42,22 @@ Create the key in Clara under **Settings → Security → API Keys** and select 
 provider "clara" {}
 
 module "clara" {
-  source    = "nops-io/clara-onboarding/aws"
+  source  = "nops-io/clara-onboarding/aws"
+  version = "~> 0.1"
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws # required, but used only when enable_commitment_management = true
+  }
+
   client_id = "<your Clara client id>" # shown in the configuration the setup wizard generates
   # ...
 }
 
 module "clara_registration" {
   source           = "nops-io/clara-onboarding/aws//modules/registration"
+  version          = "~> 0.1"
   payer_account_id = "<payer-account-id>"
   registration     = module.clara.registration
 }
@@ -84,11 +93,12 @@ Savings Analysis, Minimum Platform:
 ```hcl
 module "clara" {
   source  = "nops-io/clara-onboarding/aws"
-  version = "~> 1.0"
+  version = "~> 0.1"
 
   providers = {
     aws           = aws
     aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws # required, but used only when enable_commitment_management = true
   }
 
   client_id       = "<clara-client-id>"
@@ -102,11 +112,12 @@ Savings Analysis, Full Platform, with child roles:
 ```hcl
 module "clara" {
   source  = "nops-io/clara-onboarding/aws"
-  version = "~> 1.0"
+  version = "~> 0.1"
 
   providers = {
     aws           = aws
     aws.us_east_1 = aws.us_east_1
+    aws.sharesave = aws # required, but used only when enable_commitment_management = true
   }
 
   client_id               = "<clara-client-id>"
@@ -131,7 +142,7 @@ provider "aws" {
 
 module "clara" {
   source  = "nops-io/clara-onboarding/aws"
-  version = "~> 1.0"
+  version = "~> 0.1"
 
   providers = {
     aws           = aws
@@ -191,7 +202,6 @@ Full examples are in `examples/`.
 
 ## Notes
 
-- The module creates the CUR bucket. Existing buckets are not supported, because the bucket policy is a single document and would replace the one you have.
 - The ShareSave role must be in a dedicated child account. The module refuses to deploy it into the payer.
 - Commitment Management creates CloudFormation stacks with the same templates Clara's wizard uses. A stack name collision with an existing Clara stack fails the plan.
 - An existing CUR bucket is never changed. A bucket policy is a single document, so writing one would replace the policy the customer already has. The module reads the bucket and fails the plan unless it is in us-east-1.
