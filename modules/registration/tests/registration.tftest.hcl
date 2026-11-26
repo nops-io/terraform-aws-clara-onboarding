@@ -1,5 +1,5 @@
-# Needs the clara provider. Until it is published, build it from terraform-provider-clara
-# and point TF_CLI_CONFIG_FILE at a dev_overrides file for nops-io/clara.
+# Uses a mock of the nops-io/clara provider, so no API key is needed. terraform init still
+# downloads the provider from the Terraform Registry.
 mock_provider "clara" {}
 
 variables {

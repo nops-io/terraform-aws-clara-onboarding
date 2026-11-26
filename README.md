@@ -194,11 +194,28 @@ Full examples are in `examples/`.
 |---|---|
 | `role_arn`, `role_name` | Integration role. |
 | `external_id` | ExternalId. Sensitive. |
+| `permission_mode` | Permission level of the integration role: `minimal` or `full`. |
 | `cur_bucket_name`, `cur_report_name`, `cur2_export_arn` | CUR resources, or `null`. |
 | `child_role_name` | Savings Analysis child role deployed to member accounts, or `null`. |
 | `commitment_central_role_arn` | Commitment Management central role, or `null`. |
 | `commitment_sharesave_role_arn` | ShareSave role, or `null`. |
 | `registration` | All registration values in one object. Sensitive. |
+
+## Permissions
+
+The policies are the same ones Clara's CloudFormation templates attach. Both levels are mostly read-only, but they include some
+actions that change your account:
+
+- **Minimum Platform:** `cur:PutReportDefinition`, `bcm-data-exports:CreateExport`, `bcm-data-exports:UpdateExport` (to manage
+  the Clara CUR exports), `support:CreateCase`, and `sts:AssumeRole`.
+- **Full Platform** adds, among others: `ec2:CreateSnapshot`, `ec2:CreateTags`, `ec2:DeleteVolume`, `rds:AddTagsToResource`,
+  `cur:DeleteReportDefinition`, `ce:CreateAnomalyMonitor`, `ce:UpdateCostAllocationTagsStatus`, `events:CreateEventBus`,
+  `organizations:InviteAccountToOrganization`, `servicequotas:RequestServiceQuotaIncrease`, `support:ResolveCase`, and
+  `wellarchitected:*`. It also attaches the AWS-managed `ReadOnlyAccess` policy, plus deny policies that block reading data
+  outside the CUR bucket.
+
+Review `modules/savings-analysis/policies/` for the full documents, or see
+[Permissions & Resources](https://help.nops.io/aws/permissions-and-resources) for what each level is used for.
 
 ## Notes
 

@@ -8,8 +8,8 @@ locals {
   account_id = data.aws_caller_identity.current.account_id
   bucket_arn = "arn:aws:s3:::${var.cur_bucket_name}"
 
-  # Minimum and Full allow/deny documents come from Clara's generated policy JSON
-  # (see scripts/sync_from_clara.py). Only the CUR bucket placeholder in the S3 data
+  # Minimum and Full allow/deny documents are vendored from Clara's policy documents, the
+  # same ones its CloudFormation templates use. Only the CUR bucket placeholder in the S3 data
   # deny is filled in here, the same way the CloudFormation template does it.
   s3_data_deny_source = jsondecode(file("${path.module}/policies/full-s3-data-deny.json"))
   s3_data_deny_policy = jsonencode({

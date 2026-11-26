@@ -4,10 +4,21 @@
 *.tfstate.*
 crash.log
 crash.*.log
+*.tfplan
+tfplan
+
+# Local overrides and CLI config, which can point at a development provider build.
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfrc
 *.tfvars
 !*.tfvars.example
 
-# Local tool logs (e.g. databricks_mcp.log)
+# Local tool logs
 *.log
 
 # Internal design, dev environment and tooling. Never published; keep out of history.

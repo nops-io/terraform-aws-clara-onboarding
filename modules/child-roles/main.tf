@@ -1,5 +1,5 @@
 locals {
-  # Vendored by scripts/sync_from_clara.py. Do not edit the templates here.
+  # Vendored from Clara's CloudFormation templates. Do not edit the templates here.
   template_file = var.permission_mode == "full" ? "nops-sa-child-role.yaml" : "nops-sa-child-role-minimal.yaml"
 }
 
